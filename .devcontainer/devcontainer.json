@@ -1,7 +1,7 @@
 {
     "name": "nfcore",
-    "image": "nfcore/devcontainer:latest",
-    "remoteUser": "vscode",
+    "image": "ghcr.io/nextflow-io/training:latest",
+    "remoteUser": "root",
 
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
