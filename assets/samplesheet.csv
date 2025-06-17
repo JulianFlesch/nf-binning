@@ -1,3 +1,3 @@
 sample,condition,bed
-FOO,1,assets/testdata/foo_1.bed
-FOO,0,assets/testdata/foo_0.bed
+SAMPLE_FOO_1,1,assets/testdata/foo_1.bed
+SAMPLE_FOO_0,0,assets/testdata/foo_0.bed
