@@ -6,8 +6,11 @@
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_binning_pipeline'
-include { BEDTOOLS_INTERSECT     } from '../modules/nf-core/bedtools/intersect/main'
+include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_REGIONS } from '../modules/nf-core/bedtools/intersect/main'
+include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_WINDOWS } from '../modules/nf-core/bedtools/intersect/main'
 include { BEDTOOLS_MAKEWINDOWS as BEDTOOLS_MAKEWINDOWS_500   } from '../modules/nf-core/bedtools/makewindows/main'
+include { CAT_CAT } from '../modules/nf-core/cat/cat/main'
+include { BEDTOOLS_SORT } from '../modules/nf-core/bedtools/sort/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,7 +29,10 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
-    // Note: only runs, when a window file is provided
+
+    // BIN BY PREDEFINED REGIONS
+    // -------------------------
+    // (Note: only executed, when a window file is provided in ch_window_file)
     ch_samplesheet
         .combine(ch_window_file)
         // Change the order of arguments to the bedtools process:
@@ -34,14 +40,38 @@ workflow BINNING {
         .map { meta, bed, regions -> return [meta, regions, bed] }
         .set { ch_intersect }
 
-    BEDTOOLS_INTERSECT(ch_intersect, tuple([], []))
-    ch_versions.mix(BEDTOOLS_INTERSECT.out.versions)
+    BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
+    ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
 
 
-    if (bin_fixed_500)  {
+    // BIN BY FIXED 500bp REGIONS
+    // --------------------------
+    if (bin_fixed_500) {
+
+        // TODO: DOes this work with metas concatenated?
+        // Concat all bed files from the samplesheet
+        CAT_CAT(ch_samplesheet.coolect())
+        ch_versions.mix(CAT_CAT.out.versions)
+
+        // Sort the concatenated bed file
+        BEDTOOLS_SORT(CAT_CAT.out.file_out, [])
+        ch_versions.mix(BEDTOOLS_SORT.out.versions)
+
         // Bin the bedfiles by regular regions, if window sizes are provided
-        BEDTOOLS_MAKEWINDOWS_500(ch_samplesheet)
+        BEDTOOLS_MAKEWINDOWS_500(BEDTOOLS_SORT.out.sorted)
         ch_versions.mix(BEDTOOLS_MAKEWINDOWS_500.out.versions)
+
+        // Intersect the window created window file with the bed files from our samplesheet
+        ch_samplesheet
+            .combine(BEDTOOLS_MAKEWINDOWS_500.out.bed)
+            // Change the order of arguments to the bedtools process:
+            // Intersection is calucated relative to the regions file
+            .map { meta, bed, regions -> return [meta, regions, bed] }
+            .set { ch_intersect_windows }
+
+        BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
+        ch_versions.mix(BEDTOOLS_INTERSECT_WINDOWS.out.versions)
+
     }
 
     // * Preparation of Tumor-Normal files:
