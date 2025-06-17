@@ -34,11 +34,16 @@ workflow NFCORE_BINNING {
 
     main:
 
+    ch_window_files = Channel.fromPath(params.window_files, checkIfExists: true)
+    ch_windows_sizes = Channel.fromList(params.window_sizes)
+
     //
     // WORKFLOW: Run pipeline
     //
     BINNING (
-        samplesheet
+        samplesheet,
+        ch_window_files,
+        ch_windows_sizes
     )
 }
 /*
