@@ -70,12 +70,8 @@ workflow PIPELINE_INITIALISATION {
     Channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, bed, bed_regions ->
-                if (!bed_regions) {
-                    return [ meta.id, meta + [ fixed_regions:true ], [ bed ] ]
-                } else {
-                    return [ meta.id, meta + [ fixed_regions:false ], [ bed, bed_regions ] ]
-                }
+            meta, bed ->
+                return [ meta.id, meta, [ bed ] ]
         }
         .groupTuple()
         .map {
