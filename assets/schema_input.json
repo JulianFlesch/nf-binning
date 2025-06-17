@@ -16,7 +16,8 @@
             "condition": {
                 "type": "integer",
                 "exists": true,
-                "errorMessage": "Condition must be provided and must be a interger (0,1) value"
+                "errorMessage": "Condition must be provided and must be a interger (0,1) value",
+                "meta": ["condition"]
             },
             "bed": {
                 "type": "string",
