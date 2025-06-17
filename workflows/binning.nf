@@ -50,7 +50,7 @@ workflow BINNING {
 
         // TODO: DOes this work with metas concatenated?
         // Concat all bed files from the samplesheet
-        CAT_CAT(ch_samplesheet.coolect())
+        CAT_CAT(ch_samplesheet.collect())
         ch_versions.mix(CAT_CAT.out.versions)
 
         // Sort the concatenated bed file
