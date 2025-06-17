@@ -13,21 +13,19 @@
                 "errorMessage": "Sample name must be provided and cannot contain spaces",
                 "meta": ["id"]
             },
-            "fastq_1": {
-                "type": "string",
-                "format": "file-path",
+            "condition": {
+                "type": "integer",
                 "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "errorMessage": "Condition must be provided and must be a interger (0,1) value"
             },
-            "fastq_2": {
+            "bed": {
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+\\.bed$",
+                "errorMessage": "bed file must be provided and must have a .bed extension"
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["sample", "bed"]
     }
 }
