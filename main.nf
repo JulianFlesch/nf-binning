@@ -34,16 +34,21 @@ workflow NFCORE_BINNING {
 
     main:
 
-    ch_window_files = Channel.fromPath(params.window_files, checkIfExists: true)
-    ch_windows_sizes = Channel.fromList(params.window_sizes)
+    if (params.window_file) {
+        // If a window file is provided, use it to bin the samplesheet
+        ch_window_file = Channel.fromPath(params.window_file, checkIfExists: true)
+    } else {
+        // If no window file is provided, create a default one
+        ch_window_file = Channel.empty()
+    }
+    def bin_fixed_500 = params.bin_fixed_500 ? params.bin_fixed_500 : false
 
-    //
     // WORKFLOW: Run pipeline
     //
     BINNING (
         samplesheet,
-        ch_window_files,
-        ch_windows_sizes
+        ch_window_file,
+        bin_fixed_500
     )
 }
 /*
