@@ -75,9 +75,10 @@ workflow PIPELINE_INITIALISATION {
         }
         .groupTuple()
         .map {
-            meta, beds ->
-                return [ meta, beds.flatten() ]
+            id, metas, beds ->
+                return [ metas, beds.flatten() ]
         }
+        .transpose()
         .set { ch_samplesheet }
 
     emit:

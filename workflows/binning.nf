@@ -29,11 +29,13 @@ workflow BINNING {
     // FROM OUR README:
     // We used the bedtools intersect and groupby commands to sum the number of normalized counts from the tracks within the CCRE and histone region boundaries. Because the CCREs and histone regions vary in size, we then averaged the number of normalized counts within each to make them more comparable.The resulting files have one row per CCRE or histone region and one column per sample and are suitable for submission to the degust server.
     // >>Script scripts/CCRE_sum.csh, avg_ccre.pl
-    if (!ch_window_file.isEmpty()) {
-        ch_samplesheet.combine(ch_window_file).view()
-        BEDTOOLS_INTERSECT(ch_samplesheet.combine(ch_window_file), tuple([], []))
-        ch_versions.mix(BEDTOOLS_INTERSECT.out.versions)
-    }
+    // Note: only runs, when a window file is provided
+    ch_samplesheet
+        .combine(ch_window_file)
+        .set { ch_intersect }
+    BEDTOOLS_INTERSECT(ch_intersect, tuple([], []))
+    ch_versions.mix(BEDTOOLS_INTERSECT.out.versions)
+
 
     if (bin_fixed_500)  {
         // Bin the bedfiles by regular regions, if window sizes are provided
