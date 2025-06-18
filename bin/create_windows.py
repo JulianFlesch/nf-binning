@@ -5,7 +5,7 @@ import csv
 import copy
 from dataclasses import dataclass
 from typing import Self
-
+import os
 
 @dataclass
 class Window:
@@ -32,7 +32,6 @@ class Window:
     def set_start(self, start: int, round_to=1) -> None:
         # Update the value of start, rounding down to the nearest multiple of round_to
         self.start = start // round_to * round_to
-        print("updated start:", self.start)
 
     def set_end(self, end:int, round_to=1) -> None:
         # Update the value of end, rounding up to the nearest multiple of round_to
@@ -90,19 +89,36 @@ def merge_into_windows(input_bed: str, window_size: int) -> list[tuple[str, int,
     return out_regions
 
 
+def parse_args():
+
+    parser = argparse.ArgumentParser(description="Merge bed regions into multiples of fixed-sized windows sizes.")
+
+    parser.add_argument("--input_bed", "-i", type=str, required=True, help="Input BED file with regions to create fixed-sized windows over.")
+    parser.add_argument("--window_size", "-w", type=int, required=True, help="size of the windows to create, in base pairs.")
+    parser.add_argument("--output_bed", "-o", type=str, default="windows.bed", help="Output BED file to write the windows to.")
+    args = parser.parse_args()
+
+    return args.input_bed, args.window_size, args.output_bed
+
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Merge regions in a BED file to regions that are multiples of a specified length.")
+    input_bed, window_size, output_bed = parse_args()
 
-    input_bed = "assets/testdata/foo_0.bed"
-    window_size = 500
-    output_bed = "windows.bed"
+    # Check if the output file exists
+    if os.path.exists(output_bed):
+        raise ValueError("Output file already exists")
+
+    # ensure the input BED file exists
+    if not os.path.exists(input_bed):
+        raise FileNotFoundError(f"Input BED file {input_bed} does not exist.")
 
     windows = merge_into_windows(input_bed, window_size)
 
-    for i, win in enumerate(windows):
-        print(f"{i}\t{win[0]}\t{win[1]}\t{win[2]}")
+    # Write the windows to the output BED file
+    with open(output_bed, "w") as ob:
+        writer = csv.writer(ob, delimiter='\t')
+        for window in windows:
+            writer.writerow(window)
 
-        if i == 10:
-            break
-
+    print(f"Created {len(windows)} windows of size {window_size} bp from {input_bed} and saved to {output_bed}.")
