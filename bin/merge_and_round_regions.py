@@ -54,7 +54,7 @@ class Window:
         return ", ".join([str(e) for e in self.to_tuple()])
 
 
-def merge_into_windows(input_bed: str, window_size: int) -> list[tuple[str, int, int]]:
+def merge_and_round_regions(input_bed: str, window_size: int) -> list[tuple[str, int, int]]:
     """
     Rounds region dimensions by window_size and merges overlapping regions after rounding.
     """
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     if not os.path.exists(input_bed):
         raise FileNotFoundError(f"Input BED file {input_bed} does not exist.")
 
-    windows = merge_into_windows(input_bed, window_size)
+    windows = merge_and_round_regions(input_bed, window_size)
 
     # Write the windows to the output BED file
     with open(output_bed, "w") as ob:
@@ -121,4 +121,4 @@ if __name__ == "__main__":
         for window in windows:
             writer.writerow(window)
 
-    print(f"Created {len(windows)} windows of size {window_size} bp from {input_bed} and saved to {output_bed}.")
+    print(f"Created {len(windows)} regions from {input_bed} and saved to {output_bed}.")
