@@ -11,6 +11,7 @@ include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_WINDOWS } from '../modules/nf
 include { BEDTOOLS_MAKEWINDOWS as BEDTOOLS_MAKEWINDOWS_500   } from '../modules/nf-core/bedtools/makewindows/main'
 include { CAT_CAT } from '../modules/nf-core/cat/cat/main'
 include { BEDTOOLS_SORT } from '../modules/nf-core/bedtools/sort/main'
+include { BEDTOOLS_MERGE } from '../modules/nf-core/bedtools/merge/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,7 +68,11 @@ workflow BINNING {
         BEDTOOLS_SORT(CAT_CAT.out.file_out, [])
         ch_versions.mix(BEDTOOLS_SORT.out.versions)
 
-        // Bin the bedfiles by regular regions, if window sizes are provided
+        // Merge overlapping regions
+        BEDTOOLS_MERGE(BEDTOOLS_SORT.out.sorted)
+        ch_versions.mix(BEDTOOLS_MERGE.out.versions)
+
+        // Create a bedfile with regular regions, if window sizes are provided
         BEDTOOLS_MAKEWINDOWS_500(BEDTOOLS_SORT.out.sorted)
         ch_versions.mix(BEDTOOLS_MAKEWINDOWS_500.out.versions)
 
