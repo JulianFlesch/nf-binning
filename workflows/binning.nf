@@ -12,7 +12,7 @@ include { BEDTOOLS_MAKEWINDOWS as BEDTOOLS_MAKEWINDOWS_500   } from '../modules/
 include { CAT_CAT } from '../modules/nf-core/cat/cat/main'
 include { BEDTOOLS_SORT } from '../modules/nf-core/bedtools/sort/main'
 include { BEDTOOLS_MERGE } from '../modules/nf-core/bedtools/merge/main'
-
+include { SIMPLIFY_REGIONS } from '../modules/local/simplify_regions/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -47,6 +47,7 @@ workflow BINNING {
 
     // BIN BY FIXED 500bp REGIONS
     // --------------------------
+    window_size = 500
     if (bin_fixed_500) {
 
         ch_samplesheet
@@ -72,8 +73,12 @@ workflow BINNING {
         BEDTOOLS_MERGE(BEDTOOLS_SORT.out.sorted)
         ch_versions.mix(BEDTOOLS_MERGE.out.versions)
 
+        // Round and simplify the merged regions to the window size
+        SIMPLIFY_REGIONS(BEDTOOLS_MERGE.out.bed, window_size)
+        ch_versions.mix(SIMPLIFY_REGIONS.out.versions)
+
         // Create a bedfile with regular regions, if window sizes are provided
-        BEDTOOLS_MAKEWINDOWS_500(BEDTOOLS_SORT.out.sorted)
+        BEDTOOLS_MAKEWINDOWS_500(SIMPLIFY_REGIONS.out.bed)
         ch_versions.mix(BEDTOOLS_MAKEWINDOWS_500.out.versions)
 
         // Intersect the window created window file with the bed files from our samplesheet
