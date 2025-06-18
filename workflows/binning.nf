@@ -48,9 +48,19 @@ workflow BINNING {
     // --------------------------
     if (bin_fixed_500) {
 
-        // TODO: DOes this work with metas concatenated?
+        ch_samplesheet
+            .map { _meta, bed -> return bed }
+            .collect()
+            .set { ch_beds }
+
+        ch_dummy_meta = Channel.value([id: "all_beds", condition: 0])
+
+        ch_dummy_meta
+            .combine(ch_beds.toList())
+            .set { ch_concat }
+
         // Concat all bed files from the samplesheet
-        CAT_CAT(ch_samplesheet.collect())
+        CAT_CAT(ch_concat)
         ch_versions.mix(CAT_CAT.out.versions)
 
         // Sort the concatenated bed file
@@ -62,11 +72,12 @@ workflow BINNING {
         ch_versions.mix(BEDTOOLS_MAKEWINDOWS_500.out.versions)
 
         // Intersect the window created window file with the bed files from our samplesheet
-        ch_samplesheet
-            .combine(BEDTOOLS_MAKEWINDOWS_500.out.bed)
+        BEDTOOLS_MAKEWINDOWS_500.out.bed
+            .map { _meta, bed -> return bed }
+            .combine(ch_samplesheet)
             // Change the order of arguments to the bedtools process:
             // Intersection is calucated relative to the regions file
-            .map { meta, bed, regions -> return [meta, regions, bed] }
+            .map { regions, meta, bed -> return [meta, regions, bed] }
             .set { ch_intersect_windows }
 
         BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
