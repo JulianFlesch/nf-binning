@@ -1,6 +1,6 @@
 
 process SIMPLIFY_REGIONS {
-    tag '$bam'
+    tag "$meta.id"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
@@ -22,9 +22,9 @@ process SIMPLIFY_REGIONS {
     script:
     """
     merge_and_round_regions.py \\
-        --bed ${bed} \\
-        --windows_size ${windows_size} \\
-        --output merged_and_rounded.bed
+        --input_bed ${bed} \\
+        --window_size ${windows_size} \\
+        --output_bed merged_and_rounded.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
