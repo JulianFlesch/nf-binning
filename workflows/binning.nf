@@ -95,6 +95,9 @@ workflow BINNING {
 
     }
 
+    // TODO: bedtools groupby and sum!
+
+
     // * Preparation of Tumor-Normal files:
     // We computed Tumor-Normal pairs from the CCRE region files and sorted them by largest differences in absolute value.
     // >>Script scripts/TvsN.csh, absval.pl
