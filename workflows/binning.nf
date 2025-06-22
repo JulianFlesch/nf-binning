@@ -95,6 +95,7 @@ workflow BINNING {
 
     }
 
+    // TODO: Drop columns that are not needed. Add a column containing "1" for each region
     // TODO: bedtools groupby and sum!
 
 
