@@ -102,9 +102,8 @@ workflow BINNING {
         BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
         ch_versions.mix(BEDTOOLS_INTERSECT_WINDOWS.out.versions)
 
-
         // Drop all columns except 1,2,3. Add a column containing "1" for each region
-        DROPCOLUMNS_WINDOWS(ch_intersect.out.bed)
+        DROPCOLUMNS_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
         ch_versions.mix(DROPCOLUMNS_WINDOWS.out.versions)
 
     }
