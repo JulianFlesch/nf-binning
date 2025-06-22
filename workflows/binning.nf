@@ -15,6 +15,8 @@ include { BEDTOOLS_MERGE } from '../modules/nf-core/bedtools/merge/main'
 include { SIMPLIFY_REGIONS } from '../modules/local/simplify_regions/main'
 include { DROPCOLUMNS as DROPCOLUMNS_REGIONS } from '../modules/local/dropcolumns/main'
 include { DROPCOLUMNS as DROPCOLUMNS_WINDOWS } from '../modules/local/dropcolumns/main'
+include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_REGIONS } from '../modules/nf-core/bedtools/groupby/main'
+include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_WINDOWS } from '../modules/nf-core/bedtools/groupby/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,7 +53,9 @@ workflow BINNING {
     DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
     ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
 
-
+    // Bedtools groupby and sum!
+    BEDTOOLS_GROUPBY_REGIONS(DROPCOLUMNS_REGIONS.out.bed, 4)
+    ch_versions.mix(BEDTOOLS_GROUPBY_REGIONS.out.versions)
 
 
     // BIN BY FIXED 500bp REGIONS
@@ -106,9 +110,11 @@ workflow BINNING {
         DROPCOLUMNS_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
         ch_versions.mix(DROPCOLUMNS_WINDOWS.out.versions)
 
-    }
+        // bedtools groupby and sum!
+        BEDTOOLS_GROUPBY_WINDOWS(DROPCOLUMNS_WINDOWS.out.bed, 4)
+        ch_versions.mix(BEDTOOLS_GROUPBY_WINDOWS.out.versions)
 
-    // TODO: bedtools groupby and sum!
+    }
 
 
     // * Preparation of Tumor-Normal files:
