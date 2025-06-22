@@ -13,6 +13,9 @@ include { CAT_CAT } from '../modules/nf-core/cat/cat/main'
 include { BEDTOOLS_SORT } from '../modules/nf-core/bedtools/sort/main'
 include { BEDTOOLS_MERGE } from '../modules/nf-core/bedtools/merge/main'
 include { SIMPLIFY_REGIONS } from '../modules/local/simplify_regions/main'
+include { DROPCOLUMNS as DROPCOLUMNS_REGIONS } from '../modules/local/dropcolumns/main'
+include { DROPCOLUMNS as DROPCOLUMNS_WINDOWS } from '../modules/local/dropcolumns/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -43,6 +46,12 @@ workflow BINNING {
 
     BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
     ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
+
+    // Drop all columns except 1,2,3. Add a column containing "1" for each region to sum over
+    DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+    ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
+
+
 
 
     // BIN BY FIXED 500bp REGIONS
@@ -93,9 +102,13 @@ workflow BINNING {
         BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
         ch_versions.mix(BEDTOOLS_INTERSECT_WINDOWS.out.versions)
 
+
+        // Drop all columns except 1,2,3. Add a column containing "1" for each region
+        DROPCOLUMNS_WINDOWS(ch_intersect.out.bed)
+        ch_versions.mix(DROPCOLUMNS_WINDOWS.out.versions)
+
     }
 
-    // TODO: Drop columns that are not needed. Add a column containing "1" for each region
     // TODO: bedtools groupby and sum!
 
 
