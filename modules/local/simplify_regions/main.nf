@@ -28,7 +28,7 @@ process SIMPLIFY_REGIONS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        merge_and_round_regions: 0.0.1
+        merge_and_round_regions: \$(merge_and_roud-regions.py --version )
     END_VERSIONS
     """
 
@@ -40,7 +40,7 @@ process SIMPLIFY_REGIONS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        merge_and_round_regions: 0.0.1
+        merge_and_round_regions: \$(merge_and_roud-regions.py --version )
     END_VERSIONS
     """
 }

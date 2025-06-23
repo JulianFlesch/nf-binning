@@ -27,7 +27,8 @@ process DROPCOLUMNS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        dropcolumns: 0.0.1
+        cat: \$(cat --version | head -n 1)
+        sed: \$(sed --version | head -n 1)
     END_VERSIONS
     """
 
@@ -39,7 +40,8 @@ process DROPCOLUMNS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        dropcolumns: 0.0.1
+        cat: \$(cat --version | head -n 1)
+        sed: \$(sed --version | head -n 1)
     END_VERSIONS
     """
 }
