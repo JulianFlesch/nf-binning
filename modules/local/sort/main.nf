@@ -31,7 +31,7 @@ process SORT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        sort: \$(sort --version | head -n 1')
+        sort: \$(sort --version | head -n 1)
     END_VERSIONS
     """
 
@@ -43,7 +43,7 @@ process SORT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        sort: \$(sort --version | head -n 1')
+        sort: \$(sort --version | head -n 1)
     END_VERSIONS
     """
 }
