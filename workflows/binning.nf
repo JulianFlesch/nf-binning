@@ -17,6 +17,7 @@ include { DROPCOLUMNS as DROPCOLUMNS_REGIONS } from '../modules/local/dropcolumn
 include { DROPCOLUMNS as DROPCOLUMNS_WINDOWS } from '../modules/local/dropcolumns/main'
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_REGIONS } from '../modules/nf-core/bedtools/groupby/main'
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_WINDOWS } from '../modules/nf-core/bedtools/groupby/main'
+include { CAT_SORT } from '../modules/local/sort/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,16 +75,18 @@ workflow BINNING {
             .combine(ch_beds.toList())
             .set { ch_concat }
 
+        CAT_SORT(ch_concat)
+        ch_versions.mix(CAT_SORT.out.versions)
         // Concat all bed files from the samplesheet
-        CAT_CAT(ch_concat)
-        ch_versions.mix(CAT_CAT.out.versions)
+        //CAT_CAT(ch_concat)
+        //ch_versions.mix(CAT_CAT.out.versions)
 
         // Sort the concatenated bed file
-        BEDTOOLS_SORT(CAT_CAT.out.file_out, [])
-        ch_versions.mix(BEDTOOLS_SORT.out.versions)
+        //BEDTOOLS_SORT(CAT_CAT.out.file_out, [])
+        //ch_versions.mix(BEDTOOLS_SORT.out.versions)
 
         // Merge overlapping regions
-        BEDTOOLS_MERGE(BEDTOOLS_SORT.out.sorted)
+        BEDTOOLS_MERGE(CAT_SORT.out.sorted)
         ch_versions.mix(BEDTOOLS_MERGE.out.versions)
 
         // Round and simplify the merged regions to the window size
