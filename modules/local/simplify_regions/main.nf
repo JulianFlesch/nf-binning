@@ -5,7 +5,7 @@ process SIMPLIFY_REGIONS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/python=3.11':
+        'https://depot.galaxyproject.org/singularity/python:3.11':
         'biocontainers/python:3.11' }"
 
     input:
