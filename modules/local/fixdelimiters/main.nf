@@ -4,8 +4,8 @@ process FIXDELIMITERS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE':
-        'biocontainers/YOUR-TOOL-HERE' }"
+        'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
+        'biocontainers/ubuntu:22.04' }"
 
     input:
     tuple val(meta), path(bed)
