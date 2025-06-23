@@ -23,7 +23,7 @@ process DROPCOLUMNS {
     """
     # Simplify the bed file to only the region columns
     # and add a column to sum over containing "1" for each region
-    cat $bed | cut -f 1,2,3 | sed 's/\$/\t1/g' > ${prefix}.bed
+    cat $bed | cut -d "\t" -f 1,2,3 | sed 's/\$/\t1/g' > ${prefix}.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
