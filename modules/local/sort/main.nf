@@ -25,7 +25,6 @@ process SORT {
     sort \\
         $args \\
         -k1,1 -k2,2n \\
-        --field-separator=\\t \\
         $bed \\
         > $outfile
 
