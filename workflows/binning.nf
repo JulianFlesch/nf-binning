@@ -10,7 +10,6 @@ include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_REGIONS } from '../modules/nf
 include { BEDTOOLS_INTERSECT as BEDTOOLS_INTERSECT_WINDOWS } from '../modules/nf-core/bedtools/intersect/main'
 include { BEDTOOLS_MAKEWINDOWS as BEDTOOLS_MAKEWINDOWS_500   } from '../modules/nf-core/bedtools/makewindows/main'
 include { CAT_CAT } from '../modules/nf-core/cat/cat/main'
-include { BEDTOOLS_SORT } from '../modules/nf-core/bedtools/sort/main'
 include { BEDTOOLS_MERGE } from '../modules/nf-core/bedtools/merge/main'
 include { SIMPLIFY_REGIONS } from '../modules/local/simplify_regions/main'
 include { DROPCOLUMNS as DROPCOLUMNS_REGIONS } from '../modules/local/dropcolumns/main'
@@ -41,7 +40,7 @@ workflow BINNING {
     FIXDELIMITERS(ch_samplesheet)
     ch_versions.mix(FIXDELIMITERS.out.bed)
 
-    SORT(FIXDELIMITERS.out.bed, [])
+    SORT(FIXDELIMITERS.out.bed)
     ch_versions.mix(SORT.out.sorted)
 
     // BIN BY PREDEFINED REGIONS
