@@ -18,6 +18,7 @@ include { DROPCOLUMNS as DROPCOLUMNS_WINDOWS } from '../modules/local/dropcolumn
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_REGIONS } from '../modules/nf-core/bedtools/groupby/main'
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_WINDOWS } from '../modules/nf-core/bedtools/groupby/main'
 include { CAT_SORT } from '../modules/local/sort/main'
+include { FIXDELIMITERS } from '../modules/local/fixdelimiters/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +37,10 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
-    BEDTOOLS_SORT(ch_samplesheet, [])
+    FIXDELIMITERS(ch_samplesheet)
+    ch_versions.mix(FIXDELIMITERS.out.bed)
+
+    BEDTOOLS_SORT(FIXDELIMITERS.out.bed, [])
     ch_versions.mix(BEDTOOLS_SORT.out.sorted)
 
     // BIN BY PREDEFINED REGIONS
