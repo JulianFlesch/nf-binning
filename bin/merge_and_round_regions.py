@@ -93,6 +93,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description="Merge bed regions into multiples of fixed-sized windows sizes.")
 
+    parser.add_argument("--version", action="version", version="%(prog)s 0.0.2")
     parser.add_argument("--input_bed", "-i", type=str, required=True, help="Input BED file with regions to create fixed-sized windows over.")
     parser.add_argument("--window_size", "-w", type=int, required=True, help="size of the windows to create, in base pairs.")
     parser.add_argument("--output_bed", "-o", type=str, default="windows.bed", help="Output BED file to write the windows to.")
