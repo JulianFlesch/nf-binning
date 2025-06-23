@@ -11,7 +11,7 @@ process CAT_SORT {
     tuple val(meta), path(beds)
 
     output:
-    tuple val(meta), path("*concat_sorted.bed"), emit: sorted
+    tuple val(meta), path("*sorted.bed"), emit: sorted
     path "versions.yml"           , emit: versions
 
     when:
@@ -20,18 +20,18 @@ process CAT_SORT {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def out = "${prefix}.concat_sorted.bed"
+    def out = "${prefix}.sorted.bed"
     """
     sort \\
         -m \\
         -k1,1 -k2,2n \\
         $args \\
-        *.bed
+        *.bed \\
         > $out
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        sort: \$(sort --version')
+        sort: \$(sort --version)
     END_VERSIONS
     """
 
