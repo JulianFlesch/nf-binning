@@ -23,10 +23,10 @@ process FIXDELIMITERS {
     def outname = "${prefix}.cleaned.bed"
     """
     # Clean the input BED file to ensure consistent tab delimiters
-    sed \
-        $args \
-        -E 's/\s+/\t/g' \
-        ${bed} \
+    sed \\
+        $args \\
+        -E 's/\s+/\t/g' \\
+        ${bed} \\
         > ${outname}
 
     cat <<-END_VERSIONS > versions.yml
