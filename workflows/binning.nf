@@ -36,11 +36,13 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
+    BEDTOOLS_SORT(ch_samplesheet, [])
+    ch_versions.mix(BEDTOOLS_SORT.out.sorted)
 
     // BIN BY PREDEFINED REGIONS
     // -------------------------
     // (Note: only executed, when a window file is provided in ch_window_file)
-    ch_samplesheet
+    BEDTOOLS_SORT.out.sorted
         .combine(ch_window_file)
         // Change the order of arguments to the bedtools process:
         // Intersection is calucated relative to the regions file
@@ -64,7 +66,7 @@ workflow BINNING {
     window_size = 500
     if (bin_fixed_500) {
 
-        ch_samplesheet
+        BEDTOOLS_SORT.out.sorted
             .map { _meta, bed -> return bed }
             .collect()
             .set { ch_beds }
@@ -77,13 +79,6 @@ workflow BINNING {
 
         CAT_SORT(ch_concat)
         ch_versions.mix(CAT_SORT.out.versions)
-        // Concat all bed files from the samplesheet
-        //CAT_CAT(ch_concat)
-        //ch_versions.mix(CAT_CAT.out.versions)
-
-        // Sort the concatenated bed file
-        //BEDTOOLS_SORT(CAT_CAT.out.file_out, [])
-        //ch_versions.mix(BEDTOOLS_SORT.out.versions)
 
         // Merge overlapping regions
         BEDTOOLS_MERGE(CAT_SORT.out.sorted)
