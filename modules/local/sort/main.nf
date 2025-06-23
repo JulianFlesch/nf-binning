@@ -27,7 +27,7 @@ process CAT_SORT {
         -m \\
         -k1,1 \\
         -k2,2n \\
-        --field-separator="t" \\
+        --field-separator=\t \\
         *.bed \\
         > $out
 
