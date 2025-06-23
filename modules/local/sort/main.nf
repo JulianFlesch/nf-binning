@@ -23,9 +23,11 @@ process CAT_SORT {
     def out = "${prefix}.sorted.bed"
     """
     sort \\
-        -m \\
-        -k1,1 -k2,2n \\
         $args \\
+        -m \\
+        -k1,1 \\
+        -k2,2n \\
+        --field-separator="t" \\
         *.bed \\
         > $out
 
