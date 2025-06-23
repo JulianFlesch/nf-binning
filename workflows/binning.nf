@@ -75,7 +75,7 @@ workflow BINNING {
             .collect()
             .set { ch_beds }
 
-        ch_dummy_meta = Channel.value([id: "all_beds", condition: 0])
+        ch_dummy_meta = Channel.value([id: "all_samples", condition: 0])
 
         ch_dummy_meta
             .combine(ch_beds.toList())
