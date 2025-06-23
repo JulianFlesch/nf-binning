@@ -17,7 +17,8 @@ include { DROPCOLUMNS as DROPCOLUMNS_REGIONS } from '../modules/local/dropcolumn
 include { DROPCOLUMNS as DROPCOLUMNS_WINDOWS } from '../modules/local/dropcolumns/main'
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_REGIONS } from '../modules/nf-core/bedtools/groupby/main'
 include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_WINDOWS } from '../modules/nf-core/bedtools/groupby/main'
-include { CAT_SORT } from '../modules/local/sort/main'
+include { CAT_SORT } from '../modules/local/cat_sort/main'
+include { SORT } from '../modules/local/sort/main'
 include { FIXDELIMITERS } from '../modules/local/fixdelimiters/main'
 
 /*
@@ -40,13 +41,13 @@ workflow BINNING {
     FIXDELIMITERS(ch_samplesheet)
     ch_versions.mix(FIXDELIMITERS.out.bed)
 
-    BEDTOOLS_SORT(FIXDELIMITERS.out.bed, [])
-    ch_versions.mix(BEDTOOLS_SORT.out.sorted)
+    SORT(FIXDELIMITERS.out.bed, [])
+    ch_versions.mix(SORT.out.sorted)
 
     // BIN BY PREDEFINED REGIONS
     // -------------------------
     // (Note: only executed, when a window file is provided in ch_window_file)
-    BEDTOOLS_SORT.out.sorted
+    SORT.out.sorted
         .combine(ch_window_file)
         // Change the order of arguments to the bedtools process:
         // Intersection is calucated relative to the regions file
@@ -70,7 +71,7 @@ workflow BINNING {
     window_size = 500
     if (bin_fixed_500) {
 
-        BEDTOOLS_SORT.out.sorted
+        SORT.out.sorted
             .map { _meta, bed -> return bed }
             .collect()
             .set { ch_beds }
