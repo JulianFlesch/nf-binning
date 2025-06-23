@@ -25,7 +25,7 @@ process FIXDELIMITERS {
     # Clean the input BED file to ensure consistent tab delimiters
     sed \
         $args \
-        -E 's/[[:space:]]+/\\t/g' \
+        -E 's/\s+/\t/g' \
         ${bed} \
         > ${outname}
 
