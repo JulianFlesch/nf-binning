@@ -41,17 +41,29 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
-    FIXDELIMITERS(ch_samplesheet)
-    ch_versions.mix(FIXDELIMITERS.out.bed)
+    ch_fixdelimiters = Channel.empty()
+    if (params.fix_bedfile_delimiters) {
+        FIXDELIMITERS(ch_samplesheet)
+        ch_versions.mix(FIXDELIMITERS.out.bed)
+        ch_fixdelimiters = FIXDELIMITERS.out.bed
+    } else {
+        ch_fixdelimiters = ch_samplesheet
+    }
 
-    SORT(FIXDELIMITERS.out.bed)
-    ch_versions.mix(SORT.out.sorted)
+    ch_sorted = Channel.empty()
+    if (params.sort_inputs) {
+        SORT(ch_fixdelimiters)
+        ch_versions.mix(SORT.out.sorted)
+        ch_sorted = SORT.out.sorted
+    } else {
+        ch_sorted = ch_fixdelimiters
+    }
 
     // BIN BY PREDEFINED REGIONS
     // -------------------------
     if (params.regions_file) {
         // (Note: only executed, when a window file is provided in ch_regions_file)
-        SORT.out.sorted
+        ch_sorted
             .combine(ch_regions_file)
             // Change the order of arguments to the bedtools process:
             // Intersection is calucated relative to the regions file
@@ -95,7 +107,7 @@ workflow BINNING {
     window_size = 500
     if (bin_fixed_500) {
 
-        SORT.out.sorted
+        ch_sorted
             .map { _meta, bed -> return bed }
             .collect()
             .set { ch_beds }
