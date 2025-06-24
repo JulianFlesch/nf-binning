@@ -19,6 +19,8 @@ include { BEDTOOLS_GROUPBY as BEDTOOLS_GROUPBY_WINDOWS } from '../modules/nf-cor
 include { CAT_SORT } from '../modules/local/cat_sort/main'
 include { SORT } from '../modules/local/sort/main'
 include { FIXDELIMITERS } from '../modules/local/fixdelimiters/main'
+include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_REGIONS } from '../modules/local/normalizeoverlap/main'
+include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_WINDOWS } from '../modules/local/normalizeoverlap/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,6 +38,9 @@ workflow BINNING {
     main:
 
     ch_versions = Channel.empty()
+
+    ch_groupby_regions = Channel.empty()
+    ch_bedgraph_regions = Channel.empty()
 
     FIXDELIMITERS(ch_samplesheet)
     ch_versions.mix(FIXDELIMITERS.out.bed)
@@ -55,6 +60,17 @@ workflow BINNING {
 
     BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
     ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
+
+    if (params.normalize_overlap) {
+        NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+        ch_versions.mix(NORMALIZEOVERLAP_REGIONS.out.versions)
+        ch_groupby_regions = NORMALIZEOVERLAP_REGIONS.out.bed
+    }
+
+    if (params.bedgraph_value) {
+        // TODO: Multiply bedgraph value by overlap (noramalized, if given)
+
+    }
 
     // Drop all columns except 1,2,3. Add a column containing "1" for each region to sum over
     DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
