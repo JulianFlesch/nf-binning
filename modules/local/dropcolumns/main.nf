@@ -9,6 +9,7 @@ process DROPCOLUMNS {
 
     input:
     tuple val(meta), path(bed)
+    val add_aggregation_column
 
     output:
     tuple val(meta), path("*.bed"), emit: bed
@@ -20,10 +21,11 @@ process DROPCOLUMNS {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def last_column_val = add_aggregation_column ? "1" : "\$NF"
     """
     # Simplify the bed file to only the columns 1-3 (describing the region)
     # and the last one (describing overlap, bedgrapah, or similar)
-    awk '{print \$1 "\t" \$2 "\t" \$3 "\t" \$NF}' $bed > ${prefix}.cut.bed
+    awk '{print \$1 "\t" \$2 "\t" \$3 "\t" $last_column_val}' $bed > ${prefix}.cut.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

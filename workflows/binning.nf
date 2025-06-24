@@ -41,6 +41,9 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
+    // Specifies if in DROPCOLUMNS a column containing only "1" is added
+    add_aggregation_col = !(params.use_bedgraph_value || params.normalize_overlap)
+
     ch_fixdelimiters = Channel.empty()
     if (params.fix_bedfile_delimiters) {
         FIXDELIMITERS(ch_samplesheet)
@@ -93,8 +96,9 @@ workflow BINNING {
             ch_mult_regions = ch_normalize_inter_regions
         }
 
-        // Drop all columns except 1,2,3 and the last
-        DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+        // Drop all columns except 1,2,3 and the last (if either bedgraph value or noramlized overlap is given)
+        // Add a column of for summing with groupby
+        DROPCOLUMNS_REGIONS(ch_normalize_inter_regions, add_aggregation_col)
         ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
 
         // Bedtools groupby and sum!
@@ -165,7 +169,7 @@ workflow BINNING {
         }
 
         // Drop all columns except 1,2,3. Add a column containing "1" for each region
-        DROPCOLUMNS_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
+        DROPCOLUMNS_WINDOWS(ch_mult_windows, add_aggregation_col)
         ch_versions.mix(DROPCOLUMNS_WINDOWS.out.versions)
 
         // bedtools groupby and sum!
