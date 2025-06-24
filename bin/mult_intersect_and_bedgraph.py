@@ -34,8 +34,8 @@ def mult_inter_bedgraph(bed_file: str, outfile: str, overlap_col: int, bedgraph_
                 if i > 0 and len(line) == 0:
                     continue
 
-                bedgraph_val = int(line[bedgraph_col])
-                overlap_val = int(line[overlap_col])
+                bedgraph_val = float(line[bedgraph_col])
+                overlap_val = float(line[overlap_col])
                 mult = bedgraph_val * overlap_val
 
                 # write row with new normalized value
