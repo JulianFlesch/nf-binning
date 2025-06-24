@@ -21,14 +21,13 @@ process DROPCOLUMNS {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    # Simplify the bed file to only the region columns
-    # and add a column to sum over containing "1" for each region
-    cat $bed | cut -d "\t" -f 1,2,3 | sed 's/\$/\t1/g' > ${prefix}.bed
+    # Simplify the bed file to only the columns 1-3 (describing the region)
+    # and the last one (describing overlap, bedgrapah, or similar)
+    awk '{print \$1 "\t" \$2 "\t" \$3 "\t" \$NF}' $bed > ${prefix}.cut.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cat: \$(cat --version | head -n 1)
-        sed: \$(sed --version | head -n 1)
+        awk: \$(awk --version | head -n 1)
     END_VERSIONS
     """
 
@@ -36,12 +35,11 @@ process DROPCOLUMNS {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}.bed
+    touch ${prefix}.cut.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cat: \$(cat --version | head -n 1)
-        sed: \$(sed --version | head -n 1)
+        awk: \$(awk --version | head -n 1)
     END_VERSIONS
     """
 }
