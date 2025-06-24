@@ -44,7 +44,7 @@ def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
 
             except IndexError:
                 error_msg = "Invalid input file or overlap_column specified. Regions or overlap value could not be read! " + \
-                            "(Input: %s, Linenum: %i, overlap_col: %i)" % (bed_file, i, overlap)
+                            "(Input: %s, Linenum: %i, overlap_col: %i)" % (bed_file, i, overlap_col)
                 raise ValueError(error_msg)
 
             except ValueError:
