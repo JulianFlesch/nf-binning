@@ -84,7 +84,7 @@ workflow BINNING {
         }
 
         // Multiply Bedgraph Value by Overlap
-        ch_mult_regions = Channel.emtpy()
+        ch_mult_regions = Channel.empty()
         if (params.use_bedgraph_value) {
             MULTBEDGRAPH_REGIONS(ch_normalize_inter_regions)
             ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
@@ -155,7 +155,7 @@ workflow BINNING {
             ch_normalize_inter_windows = BEDTOOLS_INTERSECT_WINDOWS.out.intersect
         }
 
-        ch_mult_windows = Channel.emtpy()
+        ch_mult_windows = Channel.empty()
         if (params.use_bedgraph_value) {
             MULTBEDGRAPH_WINDOWS(ch_normalize_inter_windows)
             ch_versions.mix(MULTBEDGRAPH_WINDOWS.out.versions)
