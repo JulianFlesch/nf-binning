@@ -13,9 +13,9 @@ def parse_args():
     parser.add_argument("--out", help="Ouput bed file location", default="normalized_intersect.bed")
     parser.add_argument("--overlap_col", type=int, default=-1, help="Index (0-based) describing in which column of the intersect bed file the overlap size is stored")
 
-    parser.parse_args()
+    args = parser.parse_args()
 
-    return (parser.input, parser.out, parser.overlap_col)
+    return (args.input, args.out, args.overlap_col)
 
 
 def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
