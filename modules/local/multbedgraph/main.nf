@@ -11,7 +11,7 @@ process MULTBEDGRAPH {
     tuple val(meta), path(bed)
 
     output:
-    tuple val(meta), path("*.mult.bed"), emit: bed
+    tuple val(meta), path("*.bed"), emit: bed
     path "versions.yml"           , emit: versions
 
     when:
@@ -20,7 +20,7 @@ process MULTBEDGRAPH {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def output = "${prefix}.mult.py"
+    def output = "${prefix}.mult.bed"
     """
     mult_intersect_and_bedgraph.py \\
         $args \\
@@ -37,7 +37,7 @@ process MULTBEDGRAPH {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    touch ${prefix}.bam
+    touch ${prefix}.mult.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
