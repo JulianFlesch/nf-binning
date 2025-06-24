@@ -39,9 +39,6 @@ workflow BINNING {
 
     ch_versions = Channel.empty()
 
-    ch_groupby_regions = Channel.empty()
-    ch_bedgraph_regions = Channel.empty()
-
     FIXDELIMITERS(ch_samplesheet)
     ch_versions.mix(FIXDELIMITERS.out.bed)
 
@@ -61,10 +58,13 @@ workflow BINNING {
     BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
     ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
 
+    ch_normalize_inter_regions = Channel.empty()
     if (params.normalize_overlap) {
         NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
         ch_versions.mix(NORMALIZEOVERLAP_REGIONS.out.versions)
-        ch_groupby_regions = NORMALIZEOVERLAP_REGIONS.out.bed
+        ch_normalize_inter_regions = NORMALIZEOVERLAP_REGIONS.out.bed
+    } else {
+        ch_normalize_inter_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
     }
 
     if (params.bedgraph_value) {
@@ -123,6 +123,18 @@ workflow BINNING {
 
         BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
         ch_versions.mix(BEDTOOLS_INTERSECT_WINDOWS.out.versions)
+
+        // Calculated Overlap normalized by window size
+        ch_normalize_inter_windows = Channel.empty()
+        if (params.normalize_overlap) {
+            NORMALIZEOVERLAP_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
+            ch_versions.mix(NORMALIZEOVERLAP_WINDOWS.out.versions)
+            ch_normalize_inter_windows = NORMALIZEOVERLAP_WINDOWS.out.bed
+        } else {
+            ch_normalize_inter_windows = BEDTOOLS_INTERSECT_WINDOWS.out.intersect
+        }
+
+        // TODO: Multiply with bedgraph values
 
         // Drop all columns except 1,2,3. Add a column containing "1" for each region
         DROPCOLUMNS_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
