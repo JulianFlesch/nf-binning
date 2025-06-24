@@ -34,7 +34,7 @@ workflow BINNING {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
-    ch_window_file
+    ch_regions_file
     bin_fixed_500
 
     main:
@@ -49,45 +49,46 @@ workflow BINNING {
 
     // BIN BY PREDEFINED REGIONS
     // -------------------------
-    // (Note: only executed, when a window file is provided in ch_window_file)
-    SORT.out.sorted
-        .combine(ch_window_file)
-        // Change the order of arguments to the bedtools process:
-        // Intersection is calucated relative to the regions file
-        .map { meta, bed, regions -> return [meta, regions, bed] }
-        .set { ch_intersect }
+    if (params.regions_file) {
+        // (Note: only executed, when a window file is provided in ch_regions_file)
+        SORT.out.sorted
+            .combine(ch_regions_file)
+            // Change the order of arguments to the bedtools process:
+            // Intersection is calucated relative to the regions file
+            .map { meta, bed, regions -> return [meta, regions, bed] }
+            .set { ch_intersect }
 
-    BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
-    ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
+        BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
+        ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
 
-    // Normalize and replace overlap value from bedtools intersect
-    ch_normalize_inter_regions = Channel.empty()
-    if (params.normalize_overlap) {
-        NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
-        ch_versions.mix(NORMALIZEOVERLAP_REGIONS.out.versions)
-        ch_normalize_inter_regions = NORMALIZEOVERLAP_REGIONS.out.bed
-    } else {
-        ch_normalize_inter_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
+        // Normalize and replace overlap value from bedtools intersect
+        ch_normalize_inter_regions = Channel.empty()
+        if (params.normalize_overlap) {
+            NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+            ch_versions.mix(NORMALIZEOVERLAP_REGIONS.out.versions)
+            ch_normalize_inter_regions = NORMALIZEOVERLAP_REGIONS.out.bed
+        } else {
+            ch_normalize_inter_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
+        }
+
+        // Multiply Bedgraph Value by Overlap
+        ch_mult_regions = Channel.emtpy()
+        if (params.use_bedgraph_value) {
+            MULTBEDGRAPH_REGIONS(ch_normalize_inter_regions)
+            ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
+            ch_mult_regions = MULTBEDGRAPH_REGIONS.out.bed
+        } else {
+            ch_mult_regions = ch_normalize_inter_regions
+        }
+
+        // Drop all columns except 1,2,3 and the last
+        DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+        ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
+
+        // Bedtools groupby and sum!
+        BEDTOOLS_GROUPBY_REGIONS(DROPCOLUMNS_REGIONS.out.bed, 4)
+        ch_versions.mix(BEDTOOLS_GROUPBY_REGIONS.out.versions)
     }
-
-    // Multiply Bedgraph Value by Overlap
-    ch_mult_regions = Channel.emtpy()
-    if (params.use_bedgraph_value) {
-        MULTBEDGRAPH_REGIONS(ch_normalize_inter_regions)
-        ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
-        ch_mult_regions = MULTBEDGRAPH_REGIONS.out.bed
-    } else {
-        ch_mult_regions = ch_normalize_inter_regions
-    }
-
-    // Drop all columns except 1,2,3 and the last
-    DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
-    ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
-
-    // Bedtools groupby and sum!
-    BEDTOOLS_GROUPBY_REGIONS(DROPCOLUMNS_REGIONS.out.bed, 4)
-    ch_versions.mix(BEDTOOLS_GROUPBY_REGIONS.out.versions)
-
 
     // BIN BY FIXED 500bp REGIONS
     // --------------------------
