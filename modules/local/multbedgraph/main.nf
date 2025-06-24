@@ -25,7 +25,7 @@ process MULTBEDGRAPH {
     mult_intersect_and_bedgraph.py \\
         $args \\
         --input $bed \\
-        --output $output
+        --out $output
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
