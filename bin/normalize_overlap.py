@@ -21,7 +21,7 @@ def parse_args():
 def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
 
     assert (os.path.exists(bed_file))
-    assert (not os.path.extists(outfile))
+    assert (not os.path.exists(outfile))
 
     with open(bed_file, "r") as ib, open(outfile, "w") as ob:
         reader = csv.reaer(ib, delimiter="\t")
