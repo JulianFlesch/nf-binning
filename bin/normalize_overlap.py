@@ -12,13 +12,14 @@ def parse_args():
     parser.add_argument("--input", help="Intersect file in bed format", type=str, required=True)
     parser.add_argument("--out", help="Ouput bed file location", default="normalized_intersect.bed")
     parser.add_argument("--overlap_col", type=int, default=-1, help="Index (0-based) describing in which column of the intersect bed file the overlap size is stored")
+    parser.add_argument("--round", type=int, default=3, help="Number of digits to round to.")
 
     args = parser.parse_args()
 
-    return (args.input, args.out, args.overlap_col)
+    return (args.input, args.out, args.overlap_col, args.round)
 
 
-def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
+def normalize_overlap(bed_file: str, outfile: str, overlap_col: int, round: int=3):
 
     assert (os.path.exists(bed_file))
     assert (not os.path.exists(outfile))
@@ -54,5 +55,5 @@ def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
 
 
 if __name__ == "__main__":
-    input, output, overlap_col = parse_args()
-    normalize_overlap(input, output, overlap_col)
+    input, output, overlap_col, round_to = parse_args()
+    normalize_overlap(input, output, overlap_col, round_to)
