@@ -19,7 +19,7 @@ def parse_args():
     return (args.input, args.out, args.overlap_col, args.round)
 
 
-def normalize_overlap(bed_file: str, outfile: str, overlap_col: int, round: int=3):
+def normalize_overlap(bed_file: str, outfile: str, overlap_col: int, round_to: int=3):
 
     assert (os.path.exists(bed_file))
     assert (not os.path.exists(outfile))
@@ -37,7 +37,10 @@ def normalize_overlap(bed_file: str, outfile: str, overlap_col: int, round: int=
                 pos_start = int(line[1])
                 pos_end = int(line[2])
                 overlap = int(line[overlap_col])
-                normalized = min(1, overlap / (pos_end - pos_start))  # values should never be bigger than 1
+                normalized = round(
+                                min(1, overlap / (pos_end - pos_start)),  # values should never be bigger than 1
+                                round_to
+                            )
 
                 # write row with new normalized value
                 line[overlap_col] = normalized
