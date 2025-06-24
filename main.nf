@@ -34,7 +34,7 @@ workflow NFCORE_BINNING {
 
     main:
 
-    if (params.window_file) {
+    if (params.regions_file) {
         // If a window file is provided, use it to bin the samplesheet
         ch_regions_file = Channel.fromPath(params.regions_file, checkIfExists: true)
     } else {
