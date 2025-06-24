@@ -36,7 +36,7 @@ def normalize_overlap(bed_file: str, outfile: str, overlap_col: int):
                 pos_start = int(line[1])
                 pos_end = int(line[2])
                 overlap = int(line[overlap_col])
-                normalized = overlap / (pos_end - pos_start)
+                normalized = min(1, overlap / (pos_end - pos_start))  # values should never be bigger than 1
 
                 # write row with new normalized value
                 line[overlap_col] = normalized
