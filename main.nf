@@ -36,10 +36,10 @@ workflow NFCORE_BINNING {
 
     if (params.window_file) {
         // If a window file is provided, use it to bin the samplesheet
-        ch_window_file = Channel.fromPath(params.window_file, checkIfExists: true)
+        ch_regions_file = Channel.fromPath(params.regions_file, checkIfExists: true)
     } else {
         // If no window file is provided, create a default one
-        ch_window_file = Channel.empty()
+        ch_regions_file = Channel.empty()
     }
     def bin_fixed_500 = params.bin_fixed_500 ? params.bin_fixed_500 : false
 
@@ -47,7 +47,7 @@ workflow NFCORE_BINNING {
     //
     BINNING (
         samplesheet,
-        ch_window_file,
+        ch_regions_file,
         bin_fixed_500
     )
 }
