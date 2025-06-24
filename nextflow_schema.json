@@ -110,6 +110,12 @@
                 "use_bedgraph_value": {
                     "type": "boolean"
                 },
+                "fix_bedfile_delimiters": {
+                    "type": "boolean"
+                },
+                "sort_inputs": {
+                    "type": "boolean"
+                },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
