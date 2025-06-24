@@ -25,7 +25,7 @@ def mult_inter_bedgraph(bed_file: str, outfile: str, overlap_col: int, bedgraph_
     assert (not os.path.exists(outfile))
 
     with open(bed_file, "r") as ib, open(outfile, "w") as ob:
-        reader = csv.reaer(ib, delimiter="\t")
+        reader = csv.reader(ib, delimiter="\t")
         writer = csv.writer(ob, delimiter="\t")
 
         for i, line in enumerate(reader):
