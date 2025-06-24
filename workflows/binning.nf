@@ -21,6 +21,8 @@ include { SORT } from '../modules/local/sort/main'
 include { FIXDELIMITERS } from '../modules/local/fixdelimiters/main'
 include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_REGIONS } from '../modules/local/normalizeoverlap/main'
 include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_WINDOWS } from '../modules/local/normalizeoverlap/main'
+include { MULTBEDGRAPH as MULTBEDGRAPH_REGIONS } from '../modules/local/multbedgraph/main'
+include { MULTBEDGRAPH as MULTBEDGRAPH_WINDOWS } from '../modules/local/multbedgraph/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,6 +60,7 @@ workflow BINNING {
     BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
     ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
 
+    // Normalize and replace overlap value from bedtools intersect
     ch_normalize_inter_regions = Channel.empty()
     if (params.normalize_overlap) {
         NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
@@ -67,12 +70,17 @@ workflow BINNING {
         ch_normalize_inter_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
     }
 
-    if (params.bedgraph_value) {
-        // TODO: Multiply bedgraph value by overlap (noramalized, if given)
-
+    // Multiply Bedgraph Value by Overlap
+    ch_mult_regions = Channel.emtpy()
+    if (params.use_bedgraph_value) {
+        MULTBEDGRAPH_REGIONS(ch_normalize_inter_regions)
+        ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
+        ch_mult_regions = MULTBEDGRAPH_REGIONS.out.bed
+    } else {
+        ch_mult_regions = ch_normalize_inter_regions
     }
 
-    // Drop all columns except 1,2,3. Add a column containing "1" for each region to sum over
+    // Drop all columns except 1,2,3 and the last
     DROPCOLUMNS_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
     ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
 
@@ -134,7 +142,14 @@ workflow BINNING {
             ch_normalize_inter_windows = BEDTOOLS_INTERSECT_WINDOWS.out.intersect
         }
 
-        // TODO: Multiply with bedgraph values
+        ch_mult_windows = Channel.emtpy()
+        if (params.use_bedgraph_value) {
+            MULTBEDGRAPH_WINDOWS(ch_normalize_inter_windows)
+            ch_versions.mix(MULTBEDGRAPH_WINDOWS.out.versions)
+            ch_mult_windows = MULTBEDGRAPH_WINDOWS.out.bed
+        } else {
+            ch_mult_windows = ch_normalize_inter_windows
+        }
 
         // Drop all columns except 1,2,3. Add a column containing "1" for each region
         DROPCOLUMNS_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
