@@ -23,8 +23,8 @@
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^\\S+\\.bed$",
-                "errorMessage": "bed file must be provided and must have a .bed extension"
+                "pattern": "^\\S+\\.bed(|graph|Graph)$",
+                "errorMessage": "bed file must be provided and must have a .bed, .bedgraph, or .bedGraph extension"
             }
         },
         "required": ["sample", "bed"]
