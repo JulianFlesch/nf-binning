@@ -107,6 +107,14 @@
                     "type": "boolean",
                     "default": true
                 },
+                "fltr_min_tot_fragment_len": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "fltr_min_num_reads": {
+                    "type": "integer",
+                    "default": 0
+                },
                 "use_bedgraph_value": {
                     "type": "boolean"
                 },
