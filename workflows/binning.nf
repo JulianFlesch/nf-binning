@@ -62,9 +62,34 @@ workflow BINNING {
         ch_sorted = ch_fixdelimiters
     }
 
+    // Filter by read count 
     ch_filtered_1 = Channel.empty()
     if (params.fltr_min_num_reads) {
+        ch_sorted
+            .filter { meta, bed ->
+                def num_reads
 
+                // Note: for bedgraphs with coverage values, this might overestimate the read count,
+                // but it is the only actionable information.
+
+                // TODO: should we always just count the lines?
+                if (meta.is_bedgraph) {
+                    // For bedGraph files, sum the coverage value expexted in the last column
+                    // bed.readLines() reads the file into a list of strings (one per line)
+                    num_reads = bed.readLines().sum { line ->
+                        // Trim whitespace, split by any whitespace, and take the last element
+                        line.trim().split(/\s+/)[-1] as long
+                    }
+                } else {
+                    // For regular BED files, simply count the number of lines
+                    num_reads = bed.readLines().size()
+                }
+
+                // filter samples with more reads than filter threshold
+                num_reads >= params.fltr_min_num_reads
+            }
+            .set { ch_filtered_1 }
+        ch_filtered_1.view()
     } else {
         ch_filtered_1 = ch_sorted
     }
