@@ -62,11 +62,26 @@ workflow BINNING {
         ch_sorted = ch_fixdelimiters
     }
 
+    ch_filtered_1 = Channel.empty()
+    if (params.fltr_min_num_reads) {
+
+    } else {
+        ch_filtered_1 = ch_sorted
+    }
+
+    ch_filtered_2 = Channel.empty()
+    if (params.fltr_min_tot_fragment_len) {
+
+    } else {
+        ch_filtered_2 = ch_filtered_1
+    }
+
+
     // BIN BY PREDEFINED REGIONS
     // -------------------------
     if (params.regions_file) {
         // (Note: only executed, when a window file is provided in ch_regions_file)
-        ch_sorted
+        ch_filtered_2
             .combine(ch_regions_file)
             // Change the order of arguments to the bedtools process:
             // Intersection is calucated relative to the regions file
