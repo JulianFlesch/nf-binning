@@ -85,18 +85,48 @@ workflow BINNING {
                     num_reads = bed.readLines().size()
                 }
 
-                // filter samples with more reads than filter threshold
+                // filter samples by read / fragment count
                 num_reads >= params.fltr_min_num_reads
             }
             .set { ch_filtered_1 }
-        ch_filtered_1.view()
     } else {
         ch_filtered_1 = ch_sorted
     }
 
+    // Filter by total fragment length
     ch_filtered_2 = Channel.empty()
     if (params.fltr_min_tot_fragment_len) {
+        ch_filtered_1
+            .filter { meta, bed ->
+                def total_fragment_len
+                def splitted
+                def start
+                def end
 
+                // iterate over the bedfile, summing the regions sizes
+                // to obtain the total fragment length
+                total_fragment_len = bed.readLines().sum { line ->
+                    // Trim whitespace, split by any whitespace
+                    splitted = line.trim().split(/\s+/)
+                    end = splitted[2] as long
+                    start = splitted[1] as long
+
+                    // For bedgraph files that have a coverage column,
+                    // multiply the region size
+                    if (meta.is_bedgraph && splitted.size() > 3) {
+                        (end - start) * splitted[-1]
+
+                    // otherwise just calculate region size
+                    } else {
+                        end - start
+                    }
+                }
+
+                // filter samples by total fragment length
+                total_fragment_len >= params.fltr_min_tot_fragment_len
+            }
+            .set { ch_filtered_2 }
+        ch_filtered_2.view()
     } else {
         ch_filtered_2 = ch_filtered_1
     }
