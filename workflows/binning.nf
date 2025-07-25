@@ -59,35 +59,35 @@ workflow BINNING {
 
         BEDTOOLS_INTERSECT_REGIONS(ch_intersect, tuple([], []))
         ch_versions.mix(BEDTOOLS_INTERSECT_REGIONS.out.versions)
+        ch_bedtools_intersect_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
+
+        // Multiply Bedgraph Value by Overlap
+        // only runs for bedgraph files or if use_bedgraph_value is set
+        MULTBEDGRAPH_REGIONS(ch_bedtools_intersect_regions)
+        ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
+        ch_mult_regions = MULTBEDGRAPH_REGIONS.out.bed
+
+        // Drop all columns except 1,2,3 and the last (if either bedgraph value or noramlized overlap is given)
+        // Add a column of for summing with groupby
+        DROPCOLUMNS_REGIONS(ch_mult_regions, add_aggregation_col)
+        ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
+        ch_dropcol_regions = DROPCOLUMNS_REGIONS.out.bed
+
+        // Bedtools groupby and sum!
+        BEDTOOLS_GROUPBY_REGIONS(ch_dropcol_regions, 4)
+        ch_versions.mix(BEDTOOLS_GROUPBY_REGIONS.out.versions)
+        ch_bedtools_groupby_regions = BEDTOOLS_GROUPBY_REGIONS.out.bed
 
         // Normalize and replace overlap value from bedtools intersect
         ch_normalize_inter_regions = Channel.empty()
         if (params.normalize_overlap) {
-            NORMALIZEOVERLAP_REGIONS(BEDTOOLS_INTERSECT_REGIONS.out.intersect)
+            NORMALIZEOVERLAP_REGIONS(ch_bedtools_groupby_regions)
             ch_versions.mix(NORMALIZEOVERLAP_REGIONS.out.versions)
             ch_normalize_inter_regions = NORMALIZEOVERLAP_REGIONS.out.bed
         } else {
-            ch_normalize_inter_regions = BEDTOOLS_INTERSECT_REGIONS.out.intersect
+            ch_normalize_inter_regions = ch_bedtools_groupby_regions
         }
 
-        // Multiply Bedgraph Value by Overlap
-        ch_mult_regions = Channel.empty()
-        if (params.use_bedgraph_value) {
-            MULTBEDGRAPH_REGIONS(ch_normalize_inter_regions)
-            ch_versions.mix(MULTBEDGRAPH_REGIONS.out.versions)
-            ch_mult_regions = MULTBEDGRAPH_REGIONS.out.bed
-        } else {
-            ch_mult_regions = ch_normalize_inter_regions
-        }
-
-        // Drop all columns except 1,2,3 and the last (if either bedgraph value or noramlized overlap is given)
-        // Add a column of for summing with groupby
-        DROPCOLUMNS_REGIONS(ch_normalize_inter_regions, add_aggregation_col)
-        ch_versions.mix(DROPCOLUMNS_REGIONS.out.versions)
-
-        // Bedtools groupby and sum!
-        BEDTOOLS_GROUPBY_REGIONS(DROPCOLUMNS_REGIONS.out.bed, 4)
-        ch_versions.mix(BEDTOOLS_GROUPBY_REGIONS.out.versions)
     }
 
     // BIN BY FIXED 500bp REGIONS
@@ -133,39 +133,31 @@ workflow BINNING {
         BEDTOOLS_INTERSECT_WINDOWS(ch_intersect_windows, tuple([], []))
         ch_versions.mix(BEDTOOLS_INTERSECT_WINDOWS.out.versions)
 
-        // Calculated Overlap normalized by window size
-        ch_normalize_inter_windows = Channel.empty()
-        if (params.normalize_overlap) {
-            NORMALIZEOVERLAP_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
-            ch_versions.mix(NORMALIZEOVERLAP_WINDOWS.out.versions)
-            ch_normalize_inter_windows = NORMALIZEOVERLAP_WINDOWS.out.bed
-        } else {
-            ch_normalize_inter_windows = BEDTOOLS_INTERSECT_WINDOWS.out.intersect
-        }
-
-        ch_mult_windows = Channel.empty()
-        if (params.use_bedgraph_value) {
-            MULTBEDGRAPH_WINDOWS(ch_normalize_inter_windows)
-            ch_versions.mix(MULTBEDGRAPH_WINDOWS.out.versions)
-            ch_mult_windows = MULTBEDGRAPH_WINDOWS.out.bed
-        } else {
-            ch_mult_windows = ch_normalize_inter_windows
-        }
+        // only for bedgraph files or if use_bedgraph_value is set
+        MULTBEDGRAPH_WINDOWS(BEDTOOLS_INTERSECT_WINDOWS.out.intersect)
+        ch_versions.mix(MULTBEDGRAPH_WINDOWS.out.versions)
+        ch_mult_windows = MULTBEDGRAPH_WINDOWS.out.bed
 
         // Drop all columns except 1,2,3. Add a column containing "1" for each region
         DROPCOLUMNS_WINDOWS(ch_mult_windows, add_aggregation_col)
         ch_versions.mix(DROPCOLUMNS_WINDOWS.out.versions)
+        ch_dropcol_windows = DROPCOLUMNS_WINDOWS.out.bed
 
-        // bedtools groupby and sum!
-        BEDTOOLS_GROUPBY_WINDOWS(DROPCOLUMNS_WINDOWS.out.bed, 4)
+        // bedtools groupby and sum
+        BEDTOOLS_GROUPBY_WINDOWS(ch_dropcol_windows, 4)
         ch_versions.mix(BEDTOOLS_GROUPBY_WINDOWS.out.versions)
+        ch_bedtools_groupby_windows = BEDTOOLS_GROUPBY_WINDOWS.out.bed
 
+        // Calculated Overlap normalized by window size
+        ch_normalize_windows = Channel.empty()
+        if (params.normalize_overlap) {
+            NORMALIZEOVERLAP_WINDOWS(ch_bedtools_groupby_windows)
+            ch_versions.mix(NORMALIZEOVERLAP_WINDOWS.out.versions)
+            ch_normalize_windows = NORMALIZEOVERLAP_WINDOWS.out.bed
+        } else {
+            ch_normalize_windows = ch_bedtools_groupby_windows
+        }
     }
-
-
-    // * Preparation of Tumor-Normal files:
-    // We computed Tumor-Normal pairs from the CCRE region files and sorted them by largest differences in absolute value.
-    // >>Script scripts/TvsN.csh, absval.pl
 
     //
     // Collate and save software versions
