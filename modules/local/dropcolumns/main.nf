@@ -21,7 +21,7 @@ process DROPCOLUMNS {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def last_column_val = add_aggregation_column ? "1" : "\$NF"
+    def last_column_val = (!meta.is_bedgraph && add_aggregation_column) ? "1" : "\$NF"
     """
     # Simplify the bed file to only the columns 1-3 (describing the region)
     # and the last one (describing overlap, bedgrapah, or similar)
