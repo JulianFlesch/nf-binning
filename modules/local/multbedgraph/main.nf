@@ -15,7 +15,7 @@ process MULTBEDGRAPH {
     path "versions.yml"           , emit: versions
 
     when:
-    task.ext.when == null || task.ext.when
+    task.ext.when == null || task.ext.when || meta.is_bedgraph
 
     script:
     def args = task.ext.args ?: ''
