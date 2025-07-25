@@ -95,7 +95,11 @@ workflow SORTANDFILTER {
             meta.fragment_count = num_reads
             tuple(meta, bed)
         }
-    ch_stats.view()
+
+    // Write stats report by sample with total fragment length and num of fragments
+    ch_stats.collectFile(name: 'bed_totalfraglen_fragcount.csv', storeDir: "$params.outdir/00_stats/", newLine: true) {
+        meta, bed -> "$meta.id\t$meta.total_fragment_len\t$meta.fragment_count"
+    }
 
     // Filter by read count 
     ch_filtered_1 = Channel.empty()
