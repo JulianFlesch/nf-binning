@@ -28,42 +28,37 @@ workflow SORTANDFILTER {
         ch_sorted = ch_fixdelimiters
     }
 
-    // Filter by read count 
-    ch_filtered_1 = Channel.empty()
-    if (params.fltr_min_num_reads) {
-        ch_sorted
-            .filter { meta, bed ->
-                def num_reads
 
-                // Note: for bedgraphs with coverage values, this might overestimate the read count,
-                // but it is the only actionable information.
+    // collect read_count as coverage statistic from all bed files
+    ch_read_counts = Channel.empty()
+    ch_sorted
+        .map { meta, bed ->
+            def num_reads
 
-                // TODO: should we always just count the lines?
-                if (meta.is_bedgraph) {
-                    // For bedGraph files, sum the coverage value expexted in the last column
-                    // bed.readLines() reads the file into a list of strings (one per line)
-                    num_reads = bed.readLines().sum { line ->
-                        // Trim whitespace, split by any whitespace, and take the last element
-                        line.trim().split(/\s+/)[-1] as long
-                    }
-                } else {
-                    // For regular BED files, simply count the number of lines
-                    num_reads = bed.readLines().size()
+            // Note: for bedgraphs with coverage values, this might overestimate the read count,
+            // but it is the only actionable information.
+
+            // TODO: should we always just count the lines?
+            if (meta.is_bedgraph) {
+                // For bedGraph files, sum the coverage value expexted in the last column
+                // bed.readLines() reads the file into a list of strings (one per line)
+                num_reads = bed.readLines().sum { line ->
+                    // Trim whitespace, split by any whitespace, and take the last element
+                    line.trim().split(/\s+/)[-1] as long
                 }
-
-                // filter samples by read / fragment count
-                num_reads >= params.fltr_min_num_reads
+            } else {
+                // For regular BED files, simply count the number of lines
+                num_reads = bed.readLines().size()
             }
-            .set { ch_filtered_1 }
-    } else {
-        ch_filtered_1 = ch_sorted
-    }
 
-    // Filter by total fragment length
-    ch_filtered_2 = Channel.empty()
-    if (params.fltr_min_tot_fragment_len) {
-        ch_filtered_1
-            .filter { meta, bed ->
+            tuple(meta.id, tuple(num_reads, meta, bed))
+        }
+        .set { ch_read_counts }
+
+    // collect total fragment length statistic from all bed files
+    ch_fragment_len = Channel.empty()
+    ch_sorted
+        .map { meta, bed ->
                 def total_fragment_len
                 def splitted
                 def start
@@ -88,11 +83,42 @@ workflow SORTANDFILTER {
                     }
                 }
 
-                // filter samples by total fragment length
-                total_fragment_len >= params.fltr_min_tot_fragment_len
+                tuple(meta.id, total_fragment_len)
+        }
+        .set { ch_fragment_len }
+
+    ch_stats = ch_fragment_len
+        .join(ch_read_counts)
+        .map{ id, fragment_len, read_counts_tuple -> 
+            def (num_reads, meta, bed) = read_counts_tuple
+            meta.total_fragment_len = fragment_len
+            meta.fragment_count = num_reads
+            tuple(meta, bed)
+        }
+    ch_stats.view()
+
+    // Filter by read count 
+    ch_filtered_1 = Channel.empty()
+    if (params.fltr_min_num_reads) {
+        ch_stats
+            .filter { meta, bed ->
+                // filter samples by read / fragment count
+                meta.fragment_count >= params.fltr_min_num_reads
+            }
+            .set { ch_filtered_1 }
+    } else {
+        ch_filtered_1 = ch_stats
+    }
+    
+
+    // Filter by total fragment length
+    ch_filtered_2 = Channel.empty()
+    if (params.fltr_min_tot_fragment_len) {
+        ch_filtered_1
+            .filter { meta, bed ->
+                meta.total_fragment_len >= params.fltr_min_tot_fragment_len
             }
             .set { ch_filtered_2 }
-        ch_filtered_2.view()
     } else {
         ch_filtered_2 = ch_filtered_1
     }
