@@ -21,6 +21,7 @@ include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_REGIONS } from '../modules/local/
 include { NORMALIZEOVERLAP as NORMALIZEOVERLAP_WINDOWS } from '../modules/local/normalizeoverlap/main'
 include { MULTBEDGRAPH as MULTBEDGRAPH_REGIONS } from '../modules/local/multbedgraph/main'
 include { MULTBEDGRAPH as MULTBEDGRAPH_WINDOWS } from '../modules/local/multbedgraph/main'
+include { SORTANDFILTER } from '../subworkflows/local/sortandfilter'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,13 +44,13 @@ workflow BINNING {
     add_aggregation_col = !(params.use_bedgraph_value || params.normalize_overlap)
 
     SORTANDFILTER(ch_samplesheet)
-    ch_versions.mix(SORTANDFILTER.versions)
+    ch_versions.mix(SORTANDFILTER.out.versions)
 
     // BIN BY PREDEFINED REGIONS
     // -------------------------
     if (params.regions_file) {
         // (Note: only executed, when a window file is provided in ch_regions_file)
-        SORTANDFILTER.sorted_bed
+        SORTANDFILTER.out.sorted_bed
             .combine(ch_regions_file)
             // Change the order of arguments to the bedtools process:
             // Intersection is calucated relative to the regions file
@@ -94,7 +95,7 @@ workflow BINNING {
     window_size = 500
     if (bin_fixed_500) {
 
-        SORTANDFILTER.sorted_bed
+        SORTANDFILTER.out.sorted_bed
             .map { _meta, bed -> return bed }
             .collect()
             .set { ch_beds }
