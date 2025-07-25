@@ -70,8 +70,10 @@ workflow PIPELINE_INITIALISATION {
     Channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, bed ->
+            meta, bed -> {
+                meta.is_bedgraph = (bed.extension == "bedgraph" || bed.extension == "bedGraph" || params.use_bedgraph_value)
                 return [ meta.id, meta, [ bed ] ]
+            }
         }
         .groupTuple()
         .map {
